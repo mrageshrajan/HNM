@@ -1,9 +1,11 @@
 function synthesized_sig = ola(signal,fs,dest_frames,shift,win_size,pitch,max_v_freq,amplitudes,phases,corrected_phi,harm_number,FFT_size,ar_poles)
      
      synthesized_sig = zeros(1,dest_frames(end)*shift+win_size);
-     BPFILT=designfilt('bandpassfir','FilterOrder', 101, 'CutoffFrequency1', 4000, 'CutoffFrequency2', 7400,'SampleRate', fs);
+     
+%     BPFILT=designfilt('bandpassfir','FilterOrder', 101, 'CutoffFrequency1', 4000, 'CutoffFrequency2', 7600,'SampleRate', fs);
+     BPFILT=designfilt('highpassfir','FilterOrder', 101, 'CutoffFrequency', 4000,'SampleRate', fs);
 
-    for frame_index=1:length(dest_frames)-1
+     for frame_index=1:length(dest_frames)-1
         
         source_frame=dest_frames(frame_index);
         START=(source_frame-1)*shift+1; %Starting point of input frame
@@ -29,16 +31,16 @@ function synthesized_sig = ola(signal,fs,dest_frames,shift,win_size,pitch,max_v_
         if(pitch(frame_index)~=0)
             if(var(sig)>noise_var)
                 
-                var_new=var(sig)-noise_var;
-                %var_new=var(sig);
+                %var_new=var(sig)-noise_var;
+                var_new=var(sig);
             else
                 var_new=var(sig);
             end
              harm_sig=harm_sig.*sqrt(var_new);
         end
-%         synth=(noise_sig+harm_sig).*hanning(win_size).';
-%         synth=(noise_sig+harm_sig).*triang(win_size).';
-        synth=(noise_sig+harm_sig);
+         synth=(noise_sig+harm_sig).*hanning(win_size).';
+%        synth=(noise_sig+harm_sig).*triang(win_size).';
+         %synth=(noise_sig+harm_sig);
         
         
         if(frame_index==1)
