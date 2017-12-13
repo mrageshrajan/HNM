@@ -2,6 +2,10 @@ function synthesized_sig = synth_caller(speech_file,pitch_file,max_v_freq_file,f
     [x fs] = audioread(speech_file);
     signal=x(:,1);
     
+    
+    BPFILT2=designfilt('bandpassfir','FilterOrder', 101, 'CutoffFrequency1', 4000, 'CutoffFrequency2', 6000,'SampleRate', fs);
+    LPFILT=designfilt('lowpassfir','FilterOrder', 101, 'CutoffFrequency', 4000,'SampleRate', fs);
+
     pitch = load(pitch_file);
     pitch = pitch(:,2);
     load(max_v_freq_file);
@@ -14,7 +18,7 @@ function synthesized_sig = synth_caller(speech_file,pitch_file,max_v_freq_file,f
     frame_map=frame_map(:,1);
     shift=win_size/2;
     dest_frames=frame_map;
-    [amplitudes,phases,corrected_phi,harm_number]=param_gen(signal,fs,pitch,max_v_freq,frame_map,win_size,FFT_size,lpc_poles);
+    [amplitudes,phases,corrected_phi,harm_number]=param_gen(signal,fs,pitch,max_v_freq,LPFILT,BPFILT2,frame_map,win_size,FFT_size,lpc_poles);
     synthesized_sig=ola(signal,fs,dest_frames,shift,win_size,pitch,max_v_freq,amplitudes,phases,corrected_phi,harm_number,FFT_size,ar_poles);
 %     
 %     plot(synthesized_sig);
