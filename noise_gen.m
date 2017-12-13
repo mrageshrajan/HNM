@@ -57,17 +57,7 @@ function [noise_sig,noise_var] = noise_gen(sig,fs,win_size,ar_poles,max_v_freq,B
 %         newsig=iff(1:length(sig));
 %         noise_var=var(newsig-filtered);
         
-        
-        
-% 
-%         new=(realsf-realsf2)+imag(SF2);
-%         iff=ifft(new(1:2049),4096,'symmetric');
-%         [ar vr]=arcov(iff,ar_poles);
-%         noise_sig1=filter(BPFILT,randn(1,length(sig))); % White Gaussian noise
-%         noise_sig = filter(1,ar,noise_sig1);    % 
-        
-%         noise_var=var(iff(1:length(sig)));
-%         noise_sig=noise_sig./sqrt(var(noise_sig)).*sqrt(noise_var);
+
         
     else
         
