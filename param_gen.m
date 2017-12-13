@@ -1,5 +1,4 @@
-function [a_k, phases, phi_k, Num_harm] = param_gen(speech,fs,pitch,max_v_freq,framemap,win_size,FFT_size,lpc_poles)
-    
+function [a_k, phases, phi_k, Num_harm] = param_gen(speech,fs,pitch,max_v_freq,LPFILT,BPFILT2,framemap,win_size,FFT_size,lpc_poles)
 
 %     [x fs] = audioread(speech_file);
 %     signal=x(:,1);
@@ -39,11 +38,25 @@ function [a_k, phases, phi_k, Num_harm] = param_gen(speech,fs,pitch,max_v_freq,f
             phases{frame_index}=SF2(harmos);
          %%  Smoothed Spectral estimates from LPC Spectrum
          
-            lp=lpc(sig,26); % To find LPC coefficients
-            [H W]=freqz(1,lp,[0:2*pi/FFT_size:pi]);   % To find LPC spectrum: Since LPC is an all-pole model, 'B' coefficient is 1
+            filtered_low=filter(LPFILT,sig);
+            filtered_mid=filter(BPFILT2,sig);
+                    
+         
+%             lp=lpc(sig,lpc_poles); % To find LPC coefficients
+ 
+            lp1=lpc(filtered_low,lpc_poles); % To find LPC coefficients
+            lp2=lpc(filtered_mid,lpc_poles); % To find LPC coefficients
+            [H1 W1]=freqz(1,lp1,[0:2*pi/FFT_size:pi]);   % To find LPC spectrum: Since LPC is an all-pole model, 'B' coefficient is 1
+%            [H2 W2]=freqz(1,lp1,[0:2*pi/FFT_size:pi]);
+%            N_harm1=floor(4000/pitch(frame_index));
+%            N_harm2=N_harm-N_harm1;
+%            H1(round(N_harm1*FFT_size/fs)+1:end)=H2(round(N_harm1*FFT_size/fs)+1:end);
+ 
+            H1=H1./(max(abs(H1))/max(abs(fft(filtered_low))));
+            amp_esti=abs(H1(harmos)).';
             %H=SF1.';
-            amp_esti=abs(H(harmos)).';
-            a_k{frame_index}=amp_esti./(FFT_size/2);
+            %amp_esti=abs(H(harmos)).';
+            a_k{frame_index}=amp_esti;
             Num_harm{frame_index}=N_harm;
         else 
             
@@ -84,14 +97,14 @@ function [a_k, phases, phi_k, Num_harm] = param_gen(speech,fs,pitch,max_v_freq,f
                     if(length(a_k{frame_index})>length(a_k{frame_index-1}))
 
                         phi=zeros(size(a_k{frame_index}));
-                        phi(1:length(a_k{frame_index-1}))=phi_old+[1:Num_harm{frame_index-1}].'*(2*pi*pitch(frame_index-1)*(win_size/(2*fs)));
+                        phi(1:length(a_k{frame_index-1}))=phi_old+[1:Num_harm{frame_index-1}].'*(2*pi*pitch(frame_index-1)*(((win_size/2)-1)*fs));
                         phi_k{frame_index}=phi-(floor(phi./(2*pi))*2*pi); % phase wrapping
                         %phi_k{frame_index}=phi;
                         phi_old=phi_k{frame_index};
 
                     else
                         
-                        phi_new=phi_old+[1:Num_harm{frame_index-1}].'*(2*pi*pitch(frame_index-1)*(win_size/(2*fs)));
+                        phi_new=phi_old+[1:Num_harm{frame_index-1}].'*(2*pi*pitch(frame_index-1)*(((win_size/2)-1)*fs));
                         phi=phi_new(1:length(a_k{frame_index}));
                         phi_k{frame_index}=phi-(floor(phi./(2*pi))*2*pi); % phase wrapping
                         %phi_k{frame_index}=phi;
@@ -107,8 +120,7 @@ function [a_k, phases, phi_k, Num_harm] = param_gen(speech,fs,pitch,max_v_freq,f
                 first_voiced_frame=1; % when an unvoiced frame is foubnd, set the flag to 1 (for the next 1st voiced frame)
                 
             end
-        end
-% return {a_k,phi_k};        
+        end     
         
 end
 
