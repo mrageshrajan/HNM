@@ -22,6 +22,6 @@ function harm_sig=harmonic_gen(a_k,phi_k,phi_corr,fs,pitch,win_size,FFT_size,N_h
     %h=repmat(a_k(10),1,length(t)).*cos(phi(10,:));
     harm_sig=h./(sqrt(var(h))); %Normalization
     %harm_sig=h;
-    %return harm_sig
+    
 end
     
